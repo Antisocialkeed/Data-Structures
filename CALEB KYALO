@@ -1,0 +1,82 @@
+//Sct221-0361/2022 Caleb Kyalo
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#define MAX_SIZE 100
+
+typedef struct {
+    char items[MAX_SIZE];
+    int top;
+} Stack;
+
+void push(Stack *stack, char item) {
+    if (stack->top == MAX_SIZE - 1) {
+        printf("Stack overflow!\n");
+        exit(1);
+    }
+    stack->items[++stack->top] = item;
+}
+
+char pop(Stack *stack) {
+    if (stack->top == -1) {
+        printf("Stack underflow!\n");
+        exit(1);
+    }
+    return stack->items[stack->top--];
+}
+
+int isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%');
+}
+
+int precedence(char c) {
+    if (c == '*' || c == '/' || c == '%') return 2;
+    else if (c == '+' || c == '-') return 1;
+    else return 0;
+}
+
+void infixToPostfix(char *infix, char *postfix) {
+    Stack stack;
+    stack.top = -1;
+    int i = 0, j = 0;
+
+    while (infix[i] != '\0') {
+        char c = infix[i];
+
+        if (isalnum(c)) {
+            postfix[j++] = c;
+        } else if (isOperator(c)) {
+            while (stack.top != -1 && precedence(stack.items[stack.top]) >= precedence(c)) {
+                postfix[j++] = pop(&stack);
+            }
+            push(&stack, c);
+        } else if (c == '(') {
+            push(&stack, c);
+        } else if (c == ')') {
+            while (stack.items[stack.top] != '(') {
+                postfix[j++] = pop(&stack);
+            }
+            pop(&stack); // Discard '('
+        }
+        i++;
+    }
+
+    while (stack.top != -1) {
+        postfix[j++] = pop(&stack);
+    }
+
+    postfix[j] = '\0';
+}
+
+int main() {
+    char infix[MAX_SIZE], postfix[MAX_SIZE];
+
+    printf("Enter an infix expression (e.g., 5+3*(8-6)/2): ");
+    fgets(infix, sizeof(infix), stdin);
+
+    infixToPostfix(infix, postfix);
+
+    printf("Postfix expression: %s\n", postfix);
+
+    return 0;
+}
